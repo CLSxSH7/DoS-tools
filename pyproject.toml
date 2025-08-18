@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slowloris-tool"
+version = "0.1.0"
+description = "Ferramenta unificada para testes Slowloris (IP único, domínio e varredura tipo pitchfork)"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Carlos Augusto" }]
+license = { text = "MIT" }
+keywords = ["security", "pentest", "slowloris", "dos"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Security",
+]
+dependencies = []
+
+[project.optional-dependencies]
+proxy = ["PySocks>=1.7"]
+
+[project.scripts]
+slowloris = "slowloris_tool.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,13 @@
+# Dependências principais
+PySocks>=1.7.1     # Suporte a proxies SOCKS4/5
+requests>=2.31.0   # Pode ser usado em validações adicionais ou integração futura
+
+# Logs e saída
+colorama>=0.4.6    # Saída colorida no Windows/Linux
+
+# CLI
+argparse>=1.4.0    # Já vem no Python 3.10+, mas listado por compatibilidade
+
+# Qualidade de código
+black>=24.4.2      # Formatador de código
+flake8>=7.1.0      # Linter para qualidade
