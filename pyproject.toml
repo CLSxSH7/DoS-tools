@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "slowloris-tool"
 version = "0.1.0"
-description = "Ferramenta unificada para testes Slowloris (IP único, domínio e varredura tipo pitchfork)"
+description = "Unified Slowloris testing tool (IP, domain and pitchfork subnet scan)"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [{ name = "Carlos Augusto" }]

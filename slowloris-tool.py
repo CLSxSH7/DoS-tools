@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import sys
@@ -13,62 +13,50 @@ def ask(prompt: str, default: str = None) -> str:
 
 
 def interactive_menu():
-    print("Slowloris – selecione o modo:")
-    print("1) sniper (IP único)")
-    print("2) domain (domínio)")
-    print("3) pitchfork (sub-rede/portas)")
+    print("Slowloris – choose a mode:")
+    print("1) sniper   (single IP)")
+    print("2) domain   (domain)")
+    print("3) pitchfork(subnet/ports)")
     choice = input("> ").strip()
+
     if choice == "1":
         sys.argv.append("sniper")
-        ip = ask("IP de destino")
-        port = ask("Porta", "80")
-        socks = ask("SOCKS5 (ex.: 127.0.0.1:9050) ou deixe vazio", "")
+        ip = ask("Target IP")
+        port = ask("Port", "80")
+        socks = ask("SOCKS5 (e.g., 127.0.0.1:9050) or leave empty", "")
         sys.argv += ["-p", port]
         if socks:
             sys.argv += ["--socks5", socks]
-        sys.argv += ["-s", ask("Nº de sockets", "200")]
-        if ask("Usar HTTPS? (y/n)", "n").lower().startswith("y"):
+        sys.argv += ["-s", ask("Number of sockets", "150")]
+        if ask("Use HTTPS? (y/n)", "n").lower().startswith("y"):
             sys.argv += ["--https"]
-        if ask("Randomizar User-Agent? (y/n)", "n").lower().startswith("y"):
+        if ask("Randomize User-Agent? (y/n)", "n").lower().startswith("y"):
             sys.argv += ["-ua"]
-        sys.argv += ["--sleeptime", ask("Intervalo entre headers (s)", "15")]
+        sys.argv += ["--sleeptime", ask("Header interval (s)", "15")]
         sys.argv.append(ip)
+
     elif choice == "2":
         sys.argv.append("domain")
-        host = ask("Domínio (sem protocolo)")
-        port = ask("Porta", "80")
-        socks = ask("SOCKS5 (ex.: 127.0.0.1:9050) ou deixe vazio", "")
+        host = ask("Domain (no protocol)")
+        port = ask("Port", "80")
+        socks = ask("SOCKS5 (e.g., 127.0.0.1:9050) or leave empty", "")
         sys.argv += ["-p", port]
         if socks:
             sys.argv += ["--socks5", socks]
-        sys.argv += ["-s", ask("Nº de sockets", "200")]
-        if ask("Usar HTTPS? (y/n)", "n").lower().startswith("y"):
+        sys.argv += ["-s", ask("Number of sockets", "150")]
+        if ask("Use HTTPS? (y/n)", "n").lower().startswith("y"):
             sys.argv += ["--https"]
-        if ask("Randomizar User-Agent? (y/n)", "n").lower().startswith("y"):
+        if ask("Randomize User-Agent? (y/n)", "n").lower().startswith("y"):
             sys.argv += ["-ua"]
-        sys.argv += ["--sleeptime", ask("Intervalo entre headers (s)", "15")]
+        sys.argv += ["--sleeptime", ask("Header interval (s)", "15")]
         sys.argv.append(host)
+
     elif choice == "3":
         sys.argv.append("pitchfork")
-        sys.argv.append(ask("Sub-rede CIDR (ex.: 192.168.0.0/24)"))
-        sys.argv += ["-P", ask("Portas (CSV)", "80,443,8080")]
-        sys.argv += ["-s", ask("Nº de sockets por IP/porta", "200")]
-        if ask("Usar HTTPS? (y/n)", "n").lower().startswith("y"):
+        sys.argv.append(ask("Subnet CIDR (e.g., 192.168.0.0/24)"))
+        sys.argv += ["-P", ask("Ports (CSV)", "80,443,8080")]
+        sys.argv += ["-s", ask("Sockets per IP/port", "200")]
+        if ask("Use HTTPS? (y/n)", "n").lower().startswith("y"):
             sys.argv += ["--https"]
-        if ask("Randomizar User-Agent? (y/n)", "n").lower().startswith("y"):
+        if ask("Randomize User-Agent? (y/n)", "n").lower().startswith("y"):
             sys.argv += ["-ua"]
-        sys.argv += ["-t", ask("Máximo de threads", "50")]
-        sys.argv += ["-d", ask("Duração do teste (s)", "120")]
-    else:
-        print("Opção inválida.")
-        sys.exit(1)
-
-
-def main():
-    if len(sys.argv) == 1:
-        interactive_menu()
-    cli_main()
-
-
-if __name__ == "__main__":
-    main()

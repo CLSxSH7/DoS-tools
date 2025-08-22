@@ -6,8 +6,8 @@ from ..core.strategy import BaseOptions, SniperStrategy
 
 def _enable_socks5_if_needed(socks5: Optional[str]) -> None:
     """
-    Ativa proxy SOCKS5 globalmente (monkeypatch) se informado.
-    Requer PySocks: pip install PySocks
+    Enable a global SOCKS5 proxy (monkeypatch) if provided.
+    Requires PySocks: pip install PySocks
     """
     if not socks5:
         return
@@ -19,8 +19,8 @@ def _enable_socks5_if_needed(socks5: Optional[str]) -> None:
         pysocket.socket = socks.socksocket  # type: ignore[attr-defined]
     except Exception as e:
         raise SystemExit(
-            f"Falha ao configurar SOCKS5 '{socks5}'. "
-            f"Instale PySocks (pip install PySocks). Erro: {e}"
+            f"Failed to configure SOCKS5 '{socks5}'. "
+            f"Install PySocks (pip install PySocks). Error: {e}"
         )
 
 

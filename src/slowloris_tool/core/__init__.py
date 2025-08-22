@@ -1,2 +1,2 @@
-"""Núcleo com utilidades de sockets e estratégias."""
+"""Core utilities: sockets and strategies."""
 __all__ = ["sockets", "strategy"]

@@ -1,2 +1,2 @@
-# Facilita imports dos modos disponíveis
+"""Available modes"""
 __all__ = ["sniper", "domain", "pitchfork"]
