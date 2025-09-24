@@ -1,4 +1,4 @@
-# Slowloris Tool
+# DoS tools
 
 Unified tool for testing **Slowloris**, **TCP Flood** and **SYN Flood** attacks in a controlled lab environment.
 
